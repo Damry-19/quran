@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض ملف PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .fixed-buttons {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .fixed-buttons button,
+        .fixed-buttons input {
+            color: white;
+            border: none;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            text-align: center;
+            width: 60px;
+            border:3px gold solid
+        }
+        #scrollSpeedInput{
+            visibility: hidden;
+        }
+        .abtn{
+            background-color: green;
+        }
+
+        .one{
+            background-color: rgb(0, 128, 107);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .two{
+            background-color: rgb(128, 47, 0);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .three{
+            background-color: rgb(145, 123, 1);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .four{
+            background-color: rgb(77, 0, 128);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .five{
+            background-color: rgb(128, 0, 38);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .six{
+            background-color: green;
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .seven{
+            background-color: rgb(128, 119, 0);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .eight{
+            background-color: rgb(151, 63, 4);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .nine{
+            background-color: rgb(0, 87, 128);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .ten{
+            background-color: rgb(107, 0, 128);
+            &:hover{
+                background-color: rgb(0, 128, 107);
+            }
+        }
+        .fixed-buttons input {
+            width: 60px;
+        }
+        img {
+            display: block;
+            margin: 20px auto;
+            border: 1px solid black;
+            max-width: 100%;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+</head>
+<body>
+    <div class="fixed-buttons">
+        <button class="abtn" id="scrollUpBtn">UP</button>
+        <button class="abtn" id="stopScrollBtn">STOP</button>
+        <button class="abtn" id="scrollDownBtn">DOWN</button>
+        <input type="number" id="scrollSpeedInput" value="5" min="1" />
+        <!-- الأزرار لتغيير ملف PDF -->
+        <button class="one" onclick="loadPDF('Ch1.pdf')">1-3</button>
+        <button class="two" onclick="loadPDF('Ch2.pdf')">4-6</button>
+        <button class="three" onclick="loadPDF('Ch3.pdf')">7-9</button>
+        <button class="four" onclick="loadPDF('Ch4.pdf')">10-12</button>
+        <button class="five" onclick="loadPDF('Ch5.pdf')">13-15</button>
+        <button class="six" onclick="loadPDF('Ch6.pdf')">16-18</button>
+        <button class="seven" onclick="loadPDF('Ch7.pdf')">19-21</button>
+        <button class="eight" onclick="loadPDF('Ch8.pdf')">22-24</button>
+        <button class="nine" onclick="loadPDF('Ch9.pdf')">25-27</button>
+        <button class="ten" onclick="loadPDF('Ch10.pdf')">28-30</button>
+    </div>
+    
+    <div id="pdf-container"></div>
+
+    <script>
+        let url = 'Ch1.pdf'; // الملف الافتراضي عند بدء التشغيل
+
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+        const container = document.getElementById('pdf-container');
+
+        let scrollSpeed = 5; // السرعة الابتدائية للتمرير (5 ثواني)
+        let scrollInterval;
+
+        // دالة لتحميل ملف PDF جديد
+        function loadPDF(newUrl) {
+            // مسح محتوى العنصر الذي يحتوي على الصور (container)
+            container.innerHTML = '';
+
+            // تحميل ملف PDF الجديد
+            pdfjsLib.getDocument(newUrl).promise.then(function(pdf) {
+                const total_pages = pdf.numPages;
+                for (let pageNum = 1; pageNum <= total_pages; pageNum++) {
+                    renderPageAsImage(pdf, pageNum);
+                }
+            });
+
+            // تعديل القيمة لمتغير الرابط ليكون الرابط الجديد
+            url = newUrl;
+        }
+
+        pdfjsLib.getDocument(url).promise.then(function(pdf) {
+            const total_pages = pdf.numPages;
+            for (let pageNum = 1; pageNum <= total_pages; pageNum++) {
+                renderPageAsImage(pdf, pageNum);
+            }
+        });
+
+        function renderPageAsImage(pdf, pageNum) {
+            pdf.getPage(pageNum).then(function(page) {
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale: scale });
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+
+                page.render(renderContext).promise.then(function() {
+                    const img = document.createElement('img');
+                    img.src = canvas.toDataURL('image/jpeg');
+                    container.appendChild(img);
+                });
+            });
+        }
+
+        function scrollPage(direction) {
+            const step = 1; // كمية التمرير في كل خطوة
+            const delay = 80; // تأخير بين كل خطوة بالمللي ثانية
+            if (scrollInterval) clearInterval(scrollInterval);
+            scrollInterval = setInterval(() => {
+                window.scrollBy(0, direction * step);
+            }, delay);
+        }
+
+        document.getElementById('scrollSpeedInput').addEventListener('change', (event) => {
+            scrollSpeed = parseInt(event.target.value);
+        });
+
+        document.getElementById('scrollDownBtn').addEventListener('click', () => {
+            scrollPage(1); // التمرير للأسفل
+        });
+
+        document.getElementById('scrollUpBtn').addEventListener('click', () => {
+            scrollPage(-1); // التمرير للأعلى
+        });
+
+        document.getElementById('stopScrollBtn').addEventListener('click', () => {
+            if (scrollInterval) clearInterval(scrollInterval); // إيقاف التمرير
+        });
+    </script>
+</body>
+</html>
